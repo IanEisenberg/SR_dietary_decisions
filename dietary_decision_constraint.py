@@ -35,7 +35,15 @@ out = polr(decision_data, formula)
 summary = out['summary']
 coefs = out['coefs']
 
-
+# run submodels to calculate DVs
+DV_formula = 'coded_response ~ health_diff + taste_diff'
+DVs = {}
+for worker, data in decision_data.groupby('worker_id'):
+    if len(data.coded_response.unique()) >= 3:
+        out = polr(data, DV_formula)
+        DVs[worker] = out['coefs']['Value'][0:2]
+    
+DVs = pd.DataFrame(DVs).T
 
 # *****************************************************************************
 # visualization
