@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
-from r_utils import polr
+from r_utils import clm
 
 dietary_data = pd.read_csv('Data/dietary_decision.csv.gz', index_col=0)
 eating_data = pd.read_csv('Data/eating_survey_DVs.csv', index_col=0)
@@ -25,13 +25,13 @@ decision_data = decision_data.loc[~decision_data.health_diff.isnull()]
 decision_data.loc[:, ['health_diff', 'taste_diff']] = \
     decision_data[['health_diff', 'taste_diff']].astype(int)
 # set coded response as ordered factor
-decision_data.coded_response = decision_data.coded_response.astype('category')
+decision_data.coded_response = decision_data.coded_response.astype('category', ordered=True)
 # rename
 decision_data.rename({'eating_survey.cognitive_restraint': 'cognitive_restraint'},
                      axis=1, inplace=True)
 formula = 'coded_response ~ health_diff*cognitive_restraint + taste_diff*cognitive_restraint'
 # run model
-out = polr(decision_data, formula)
+out = clm(decision_data, formula)
 summary = out['summary']
 coefs = out['coefs']
 
@@ -40,8 +40,8 @@ DV_formula = 'coded_response ~ health_diff + taste_diff'
 DVs = {}
 for worker, data in decision_data.groupby('worker_id'):
     if len(data.coded_response.unique()) >= 3:
-        out = polr(data, DV_formula)
-        DVs[worker] = out['coefs']['Value'][0:2]
+        out = clm(data, DV_formula)
+        DVs[worker] = out['coefs']['Estimate'][['health_diff', 'taste_diff']]
     
 DVs = pd.DataFrame(DVs).T
 
