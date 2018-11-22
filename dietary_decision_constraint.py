@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+from pandas.api.types import CategoricalDtype
 import pandas as pd
 import seaborn as sns
 from r_utils import clm
@@ -25,7 +26,12 @@ decision_data = decision_data.loc[~decision_data.health_diff.isnull()]
 decision_data.loc[:, ['health_diff', 'taste_diff']] = \
     decision_data[['health_diff', 'taste_diff']].astype(int)
 # set coded response as ordered factor
-decision_data.coded_response = decision_data.coded_response.astype('category', ordered=True)
+cat_type = CategoricalDtype(categories=['-3','-2','-1','0','1','2'],
+                            ordered=True)
+
+decision_data.coded_response = (decision_data.coded_response  
+                                .astype(int).astype(str)
+                                .astype(cat_type))
 # rename
 decision_data.rename({'eating_survey.cognitive_restraint': 'cognitive_restraint'},
                      axis=1, inplace=True)
